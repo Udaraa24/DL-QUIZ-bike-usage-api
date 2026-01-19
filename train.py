@@ -19,11 +19,19 @@ from torch.utils.data import TensorDataset, DataLoader
 from app.model_def import MLPRegressor
 
 # We'll train on intuitive columns from the hourly dataset:
+DATA_URL = "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip"
+
+def load_hour_df() -> pd.DataFrame:
+    r = requests.get(DATA_URL, timeout=60)
+    r.raise_for_status()
+    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+        with z.open("hour.csv") as f:
+            return pd.read_csv(f)
+            
 # hr, temp, hum, windspeed, workingday, season, weathersit
 FEATURES_NUM = ["hr", "temp", "hum", "windspeed"]
 FEATURES_CAT = ["workingday", "season", "weathersit"]
 TARGET = "cnt"  # total rental count
-HOUR_DATASET = "bike_usage_api\Dataset\hour.csv"
 
 def metrics(y_true, y_pred):
     mae = mean_absolute_error(y_true, y_pred)
@@ -34,7 +42,7 @@ def metrics(y_true, y_pred):
 def main():
     os.makedirs("model", exist_ok=True)
 
-    df = pd.read_csv(HOUR_DATASET)
+    df = load_hour_df()
 
     # Use only chosen columns
     df = df[FEATURES_NUM + FEATURES_CAT + [TARGET]].copy()
