@@ -19,7 +19,5 @@ COPY train.py ./train.py
 RUN mkdir -p model && python train.py
 
 EXPOSE 8000
-# Production-ish server pattern:
-# - gunicorn manages workers
-# - uvicorn worker serves ASGI
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "60"]
+CMD ["sh", "-c", "gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 180 --graceful-timeout 30"]
+
